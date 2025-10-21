@@ -26,7 +26,12 @@ async fn watchtower_notification(
         return Err(BadRequest::new("No updated containers found").into());
     }
 
-    println!("{:?}", body);
+    if body.updated_containers.iter().all(|c| {
+        let container_name = c.name.trim().trim_start_matches('/');
+        !container_name.starts_with("SE3")
+    }) {
+        return Ok("No SE3 containers updated, skipping Discord notification");
+    }
 
     let embed_author = EmbedAuthorBuilder::new("WatchTower")
         .icon_url(
@@ -42,7 +47,7 @@ async fn watchtower_notification(
 
     for container in body.updated_containers.iter() {
         let container_name = container.name.trim().trim_start_matches('/');
-        if container_name.starts_with("SE3") {
+        if !container_name.starts_with("SE3") {
             continue;
         }
         let field = EmbedFieldBuilder::new(
