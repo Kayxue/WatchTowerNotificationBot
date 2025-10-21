@@ -7,7 +7,6 @@ pub mod RequestBody {
     #[derive(Serialize, Deserialize, Debug)]
     pub struct UpdateRequestBody<'a> {
         pub event: &'a str,
-        pub hostname: &'a str,
         pub updated_containers: Vec<Containers<'a>>,
     }
 
