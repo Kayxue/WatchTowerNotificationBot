@@ -84,28 +84,54 @@ pub async fn send_embed(embed: Embed) -> Result<(), String> {
 
 /// Start the Discord gateway shard (makes bot online)
 pub async fn start_gateway(token: String) -> Result<(), String> {
-    let config = Config::new(token, Intents::empty());
-
-    let mut shard = Shard::with_config(ShardId::ONE, config);
-
     // Spawn the gateway processing in a background task
     tokio::spawn(async move {
+        let mut consecutive_errors = 0;
+        
         loop {
-            let event = match shard.next().await {
-                Some(Ok(event)) => event,
-                Some(Err(source)) => {
-                    eprintln!("Error receiving event: {:?}", source);
-                    continue;
-                }
-                None => break,
-            };
+            println!("Starting Discord gateway connection...");
+            
+            let config = Config::new(token.clone(), Intents::empty());
+            let mut shard = Shard::with_config(ShardId::ONE, config);
 
-            // Process events (we don't need to handle any specific events for this bot)
-            // The gateway connection itself keeps the bot online
-            tokio::spawn(async move {
-                // Event processing can be added here if needed
-                drop(event);
-            });
+            loop {
+                let event = match shard.next().await {
+                    Some(Ok(event)) => {
+                        // Reset error counter on successful event
+                        consecutive_errors = 0;
+                        event
+                    }
+                    Some(Err(source)) => {
+                        eprintln!("Error receiving event: {:?}", source);
+                        consecutive_errors += 1;
+                        
+                        // If we get too many consecutive errors, reconnect
+                        if consecutive_errors >= 3 {
+                            eprintln!("Too many consecutive errors, reconnecting in 5 seconds...");
+                            break;
+                        }
+                        continue;
+                    }
+                    None => {
+                        eprintln!("Shard connection closed, reconnecting in 5 seconds...");
+                        break;
+                    }
+                };
+
+                // Process events (we don't need to handle any specific events for this bot)
+                // The gateway connection itself keeps the bot online
+                tokio::spawn(async move {
+                    // Event processing can be added here if needed
+                    drop(event);
+                });
+            }
+
+            // Reset error counter before reconnecting
+            consecutive_errors = 0;
+            
+            // Wait before reconnecting
+            tokio::time::sleep(tokio::time::Duration::from_secs(5)).await;
+            println!("Attempting to reconnect Discord gateway...");
         }
     });
 
