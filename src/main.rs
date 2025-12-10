@@ -4,13 +4,13 @@ use twilight_util::builder::embed::{
 };
 use xitca_web::{App, codegen::route, error::Error, handler::json::LazyJson, middleware::Logger};
 
-mod CustomError;
-mod Discord;
-mod Middleware;
-mod WatchTower;
+mod custom_error;
+mod discord;
+mod middleware;
+mod watch_tower;
 
-use CustomError::BadRequest;
-use WatchTower::RequestBody::UpdateRequestBody;
+use custom_error::BadRequest;
+use watch_tower::request_body::UpdateRequestBody;
 
 #[route("/update",method = post)]
 async fn watchtower_notification(
@@ -63,7 +63,7 @@ async fn watchtower_notification(
 
     let embed = embed.build();
 
-    if let Err(e) = Discord::send_embed(embed).await {
+    if let Err(e) = discord::send_embed(embed).await {
         eprintln!("Failed to send Discord embed: {}", e);
         // Don't fail the webhook even if Discord message fails
     }
@@ -85,13 +85,13 @@ async fn main() -> std::io::Result<()> {
         std::env::var("DISCORD_TOKEN").expect("DISCORD_TOKEN environment variable must be set");
 
     // Initialize Discord HTTP client and channel ID
-    Discord::init_http_client(discord_token.clone())
+    discord::init_http_client(discord_token.clone())
         .expect("Failed to initialize Discord HTTP client");
 
-    Discord::init_channel_id().expect("Failed to initialize Discord channel ID");
+    discord::init_channel_id().expect("Failed to initialize Discord channel ID");
 
     // Start Discord gateway to make bot online
-    Discord::start_gateway(discord_token)
+    discord::start_gateway(discord_token)
         .await
         .expect("Failed to start Discord gateway");
 
@@ -100,7 +100,7 @@ async fn main() -> std::io::Result<()> {
     App::new()
         .at_typed(root)
         .at_typed(watchtower_notification)
-        .enclosed_fn(Middleware::error_handler)
+        .enclosed_fn(middleware::error_handler)
         .enclosed(Logger::new())
         .serve()
         .bind(("0.0.0.0", 3000))?

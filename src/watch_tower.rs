@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-pub mod RequestBody {
+pub mod request_body {
 
     use super::*;
 

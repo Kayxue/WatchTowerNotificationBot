@@ -6,7 +6,7 @@ use xitca_web::{
     service::Service,
 };
 
-use crate::CustomError::{BadRequest, InternalServerError};
+use crate::custom_error::{BadRequest, InternalServerError};
 
 pub async fn error_handler<S, C>(s: &S, mut ctx: WebContext<'_, C>) -> Result<WebResponse, Error>
 where

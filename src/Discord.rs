@@ -54,20 +54,6 @@ pub fn get_http_client() -> Result<Arc<HttpClient>, String> {
         .ok_or_else(|| "HTTP client not initialized".to_string())
 }
 
-/// Send a message to the Discord channel
-pub async fn send_message(content: String) -> Result<(), String> {
-    let channel_id = get_channel_id()?;
-    let client = get_http_client()?;
-
-    client
-        .create_message(channel_id)
-        .content(&content)
-        .await
-        .map_err(|e| format!("Failed to send message: {}", e))?;
-
-    Ok(())
-}
-
 /// Send an embed to the Discord channel
 pub async fn send_embed(embed: Embed) -> Result<(), String> {
     let channel_id = get_channel_id()?;
