@@ -87,10 +87,10 @@ pub async fn start_gateway(token: String) -> Result<(), String> {
     // Spawn the gateway processing in a background task
     tokio::spawn(async move {
         let mut consecutive_errors = 0;
-        
+
         loop {
             println!("Starting Discord gateway connection...");
-            
+
             let config = Config::new(token.clone(), Intents::empty());
             let mut shard = Shard::with_config(ShardId::ONE, config);
 
@@ -104,7 +104,7 @@ pub async fn start_gateway(token: String) -> Result<(), String> {
                     Some(Err(source)) => {
                         eprintln!("Error receiving event: {:?}", source);
                         consecutive_errors += 1;
-                        
+
                         // If we get too many consecutive errors, reconnect
                         if consecutive_errors >= 3 {
                             eprintln!("Too many consecutive errors, reconnecting in 5 seconds...");
@@ -128,7 +128,7 @@ pub async fn start_gateway(token: String) -> Result<(), String> {
 
             // Reset error counter before reconnecting
             consecutive_errors = 0;
-            
+
             // Wait before reconnecting
             tokio::time::sleep(tokio::time::Duration::from_secs(5)).await;
             println!("Attempting to reconnect Discord gateway...");

@@ -20,7 +20,7 @@ async fn watchtower_notification(
         Some(b) => b,
         None => return Err(BadRequest::new("Request body is missing").into()),
     };
-    
+
     let body = valid_body.deserialize()?;
     if body.updated_containers.len() == 0 {
         return Err(BadRequest::new("No updated containers found").into());
