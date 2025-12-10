@@ -860,6 +860,7 @@ dependencies = [
  "futures-sink",
  "http",
  "httparse",
+ "ring",
  "rustls-pki-types",
  "sha1_smol",
  "simdutf8",
